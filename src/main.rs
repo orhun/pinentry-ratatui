@@ -26,20 +26,30 @@ fn main() -> anyhow::Result<()> {
             Ok(Command::Option(option)) => match option {
                 pinentry::Option::Ttyname(ttyname) => {
                     tui.data.ttyname = Some(ttyname.clone());
+                    std::fs::write(
+                        path,
+                        format!("{:?} {}", std::fs::metadata(&ttyname), ttyname),
+                    )?;
                 }
             },
             Ok(Command::GetPin) => {
                 let passphrase = match tui.get_pin() {
                     Ok(passphrase) => passphrase,
                     Err(err) => {
-                        // std::fs::write(
-                        //     path,
-                        //     format!("{:?} -> {}", tui.data.ttyname, err.to_string()),
-                        // )?;
-                        continue;
+                        std::fs::write(
+                            path,
+                            format!(
+                                "{}\n{:?} -> {}",
+                                std::fs::read_to_string(path)?,
+                                tui.data.ttyname,
+                                err.to_string()
+                            ),
+                        )?;
+                        return Err(err);
                     }
                 };
                 println!("D {passphrase}");
+                return Ok(());
             }
             _ => {
                 eprintln!("Invalid command");

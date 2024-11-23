@@ -109,12 +109,13 @@ impl Tui {
     }
 
     pub fn get_pin(&mut self) -> anyhow::Result<String> {
-        enable_raw_mode()?;
-
         let mut tty = File::options()
             .write(true)
             .read(true)
             .open(self.data.ttyname.as_deref().unwrap_or("/dev/stdout"))?;
+
+        enable_raw_mode()?;
+
         execute!(tty, EnterAlternateScreen)?;
         let backend = CrosstermBackend::new(tty);
         let mut terminal = Terminal::new(backend)?;
@@ -135,10 +136,9 @@ impl Tui {
             }
         }
 
-        let mut tty = File::open(self.data.ttyname.as_deref().unwrap_or("/dev/stdout"))?;
-        execute!(tty, LeaveAlternateScreen)?;
-
-        disable_raw_mode()?;
+        // disable_raw_mode()?;
+        // let mut tty = File::open(self.data.ttyname.as_deref().unwrap_or("/dev/stdout"))?;
+        // execute!(tty, LeaveAlternateScreen)?;
 
         Ok(self
             .text_area
